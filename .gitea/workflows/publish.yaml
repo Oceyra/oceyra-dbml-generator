@@ -24,7 +24,7 @@ jobs:
       - name: Restore dependencies
         run: |
          dotnet new nugetconfig
-         dotnet nuget add source "${{ vars.nuget_url }}" --name "${{ vars.nuget_name }}" --username "${{ secrets.nuget_user }}" --password "${{ secrets.nuget_password }}" --store-password-in-clear-text --configfile "./nuget.config"
+         dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text --configfile './nuget.config'
          dotnet restore $path_to_test_project
 
 
@@ -32,7 +32,7 @@ jobs:
         run: dotnet build $path_to_test_project --configuration Release
 
       - name: Run unit tests with report
-        run: dotnet test $path_to_test_project --configuration Release --no-build --logger "trx;LogFileName=TestResults.trx" --results-directory "TestResults"
+        run: dotnet test $path_to_test_project --configuration Release --no-build --logger 'trx;LogFileName=TestResults.trx' --results-directory 'TestResults'
 
       - name: Test Report
         uses: dorny/test-reporter@v2
