@@ -23,8 +23,7 @@ jobs:
 
       - name: Restore dependencies
         run: |
-         dotnet new nugetconfig
-         dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text --configfile './nuget.config'
+         dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text
          dotnet restore $path_to_test_project
 
 
@@ -62,7 +61,9 @@ jobs:
           dotnet-version: 9.x
 
       - name: Build solution and generate NuGet package
-        run: dotnet pack $path_to_project -p:Version=0.1.${{ gitea.run_number }} --configuration Release --output bin  
+        run: |
+         dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text
+         dotnet pack $path_to_project -p:Version=0.1.${{ gitea.run_number }} --configuration Release --output bin  
 
       - name: Push generated package to Gitea registry
         run: dotnet nuget push ./bin/*.nupkg --source ${{ vars.nuget_api_url }} --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }}
