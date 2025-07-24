@@ -24,7 +24,7 @@ jobs:
       - name: Restore dependencies
         run: |
          dotnet new nugetconfig
-         dotnet nuget add source "${{ vars.nuget_url }}" --name "${{ vars.nuget_name }}" --username "${{ secrets.nuget_user }}" --password "${{ secrets.nuget_password }}" --store-password-in-clear-text -configfile "./nuget.config"
+         dotnet nuget add source "${{ vars.nuget_url }}" --name "${{ vars.nuget_name }}" --username "${{ secrets.nuget_user }}" --password "${{ secrets.nuget_password }}" --store-password-in-clear-text --configfile "./nuget.config"
          dotnet restore $path_to_test_project
 
 
