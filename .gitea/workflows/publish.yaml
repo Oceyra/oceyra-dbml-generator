@@ -22,7 +22,10 @@ jobs:
           dotnet-version: 9.x
 
       - name: Restore dependencies
-        run: dotnet restore $path_to_test_project --source https://api.nuget.org/v3/index.json --source ${{ vars.nuget_url }}
+        run: |
+         dotnet nuget add source ${{ vars.nuget_url }} --name ${{ vars.nuget_name }} --username ${{ secrets.nuget_user }} --password ${{ secrets.nuget_password }} --store-password-in-clear-text
+         dotnet restore $path_to_test_project
+
 
       - name: Build solution and generate NuGet package
         run: dotnet build $path_to_test_project --configuration Release
