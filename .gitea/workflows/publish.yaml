@@ -25,7 +25,7 @@ jobs:
         run: |
          dotnet new nugetconfig
          dotnet nuget add source "${{ vars.nuget_url }}" --name "${{ vars.nuget_name }}" --username "${{ secrets.nuget_user }}" --password "${{ secrets.nuget_password }}" --store-password-in-clear-text
-         dotnet restore $path_to_test_project
+         dotnet restore $path_to_test_project -f -v n
 
 
       - name: Build solution and generate NuGet package
