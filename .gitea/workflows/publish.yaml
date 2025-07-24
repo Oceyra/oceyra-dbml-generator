@@ -1,0 +1,64 @@
+name: publish to nuget
+on:
+  push:
+    branches:
+      - main # Default release branch, may also be named 'master' or 'develop'
+
+env:
+  project: Oceyra.Dbml.Generator
+  path_to_project: src\Oceyra.Dbml.Generator\Oceyra.Dbml.Generator.csproj
+  path_to_test_project: src\Tests\Oceyra.Dbml.Generator.Tests\Oceyra.Dbml.Generator.Tests.csproj
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
+
+      - name: Restore dependencies
+        run: dotnet restore $path_to_test_project
+
+      - name: Build solution and generate NuGet package
+        run: dotnet build $path_to_test_project --configuration Release
+
+      - name: Run unit tests with report
+        run: dotnet test $path_to_test_project --configuration Release --no-build --logger "trx;LogFileName=TestResults.trx" --results-directory "TestResults"
+
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if:  ${{ !cancelled() }}            # run this step even if previous step failed
+        with:
+          name: Xunit Tests                 # Name of the check run which will be created
+          path: TestResults/TestResults.trx # Path to test results
+          reporter: dotnet-trx              # Format of test results
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: ${{ !cancelled() }} 
+        with:
+          name: TestResults
+          path: TestResults/TestResults.trx # Path to test results
+
+  publish:
+    name: Pack & Publish
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
+
+      - name: Build solution and generate NuGet package
+        run: dotnet pack $path_to_project -p:Version=0.5.${{ gitea.run_number }} --configuration Release --output bin  
+
+      - name: Push generated package to Gitea registry
+        run: dotnet nuget push ./bin/*.nupkg --source ${{ secrets.nuget_api_url }} --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }}

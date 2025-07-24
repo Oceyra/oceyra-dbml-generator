@@ -1,0 +1,8 @@
+
+<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Oceyra.Dbml.Generator.Tests/Oceyra.Dbml.Generator.Tests.csproj" />
+  </Folder>
+  <Project Path="Oceyra.Dbml.Generator.Samples/Oceyra.Dbml.Generator.Samples.csproj" />
+  <Project Path="Oceyra.Dbml.Generator\Oceyra.Dbml.Generator.csproj" />
+</Solution>
