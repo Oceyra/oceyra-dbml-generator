@@ -88,7 +88,8 @@ public partial class CustomDbContext : DbContext { }
         );
 
         result.ShouldHaveNoErrors();
-        result.ShouldExecuteWithin(TimeSpan.FromMilliseconds(1000));
+        result.ShouldExecuteWithin(TimeSpan.FromMilliseconds(2000));
+        result.ShouldHaveGeneratorTimeWithin<DbmlToEntityFrameworkGenerator>(TimeSpan.FromMilliseconds(1000));
         result.ShouldGenerateFiles(1);
 
         // Test actual functionality
