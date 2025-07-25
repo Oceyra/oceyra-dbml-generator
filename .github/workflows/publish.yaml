@@ -63,7 +63,7 @@ jobs:
       - name: Build solution and generate NuGet package
         run: |
          dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text
-         dotnet pack $path_to_project -p:Version=0.1.${{ gitea.run_number }} --configuration Release --output bin  
+         dotnet pack $path_to_project -p:Version=0.1.${{ github.run_number }} --configuration Release --output bin  
 
-      - name: Push generated package to Gitea registry
+      - name: Push generated package to Nuget registry
         run: dotnet nuget push ./bin/*.nupkg --source ${{ vars.nuget_api_url }} --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }}
