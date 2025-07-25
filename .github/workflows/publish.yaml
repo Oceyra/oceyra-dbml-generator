@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main # Default release branch, may also be named 'master' or 'develop'
+    paths:
+      - '**.cs*'
 
 env:
   project: Oceyra.Dbml.Generator
@@ -20,12 +22,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.x
+        
+      - name: Add local repo if set
+        if: ${{ vars.nuget_url != '' }}
+        run: dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text      
 
       - name: Restore dependencies
-        run: |
-         dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text
-         dotnet restore $path_to_test_project
-
+        run: dotnet restore $path_to_test_project
 
       - name: Build solution and generate NuGet package
         run: dotnet build $path_to_test_project --configuration Release
@@ -41,13 +44,6 @@ jobs:
           path: TestResults/TestResults.trx # Path to test results
           reporter: dotnet-trx              # Format of test results
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v3
-        if: ${{ !cancelled() }} 
-        with:
-          name: TestResults
-          path: TestResults/TestResults.trx # Path to test results
-
   publish:
     name: Pack & Publish
     needs: test
@@ -61,9 +57,12 @@ jobs:
           dotnet-version: 9.x
 
       - name: Build solution and generate NuGet package
-        run: |
-         dotnet nuget add source '${{ vars.nuget_url }}' --name '${{ vars.nuget_name }}' --username '${{ secrets.nuget_user }}' --password '${{ secrets.nuget_password }}' --store-password-in-clear-text
-         dotnet pack $path_to_project -p:Version=0.1.${{ github.run_number }} --configuration Release --output bin  
+        run: dotnet pack $path_to_project -p:Version=0.2.${{ github.run_number }} --configuration Release --output bin  
+
+      - name: Push generated package to Local registry
+        if: ${{ vars.nuget_api_url != '' }}
+        run: dotnet nuget push bin/*.nupkg --source ${{ vars.nuget_api_url }} --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }} --version-suffix Beta
 
       - name: Push generated package to Nuget registry
-        run: dotnet nuget push ./bin/*.nupkg --source ${{ vars.nuget_api_url }} --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }}
+        if: ${{ vars.nuget_api_url == '' }}
+        run: dotnet nuget push bin/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }}

@@ -27,7 +27,6 @@ Table "task_results" {
 }
 
 Table "task_dependencies" {
-  "id" bigint [pk, not null]
   "project_id" varchar(500) [not null]
   "task_id" varchar(500) [not null]
   "dependency_task_id" varchar(500) [not null]
@@ -35,6 +34,6 @@ Table "task_dependencies" {
   "updated_at" timestamp
 
   Indexes {
-    (task_id, dependency_task_id, project_id) [unique, name: "public_index_1"]
+    (task_id, dependency_task_id, project_id) [pk, unique, name: "public_index_1"]
   }
 }
