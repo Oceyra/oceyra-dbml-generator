@@ -5,6 +5,7 @@ on:
       - main # Default release branch, may also be named 'master' or 'develop'
     paths:
       - '**.cs*'
+      - '**.yaml'
 
 env:
   project: Oceyra.Dbml.Generator
@@ -57,11 +58,11 @@ jobs:
           dotnet-version: 9.x
 
       - name: Build solution and generate NuGet package
-        run: dotnet pack $path_to_project -p:Version=0.2.${{ github.run_number }} --configuration Release --output bin  
+        run: dotnet pack $path_to_project -p:Version=0.3.${{ github.run_number }} --configuration Release --output bin  
 
       - name: Push generated package to Local registry
         if: ${{ vars.nuget_api_url != '' }}
-        run: dotnet nuget push bin/*.nupkg --source ${{ vars.nuget_api_url }} --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }} --version-suffix Beta
+        run: dotnet nuget push bin/*.nupkg --source ${{ vars.nuget_api_url }} --skip-duplicate --no-symbols --api-key ${{ secrets.nuget_api_key }}
 
       - name: Push generated package to Nuget registry
         if: ${{ vars.nuget_api_url == '' }}
