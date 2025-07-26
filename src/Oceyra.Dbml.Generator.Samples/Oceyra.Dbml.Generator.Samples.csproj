@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <AdditionalFiles Include="schema\DbDiagram.dbml" />
+    <AdditionalFiles Include="schema\CompositeKeyDb.dbml" />
     <AdditionalFiles Include="schema\TaskManagerDb.dbml" />
   </ItemGroup>
 

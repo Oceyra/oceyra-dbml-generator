@@ -48,6 +48,13 @@ Table "task_dependencies" {
 }
 ```
 
+In the *.csproj, flag the DBML as an ```AdditionalFiles```
+```xml
+  <ItemGroup>
+    <AdditionalFiles Include="schema\TaskManagerDb.dbml" />
+  </ItemGroup>
+```
+
 In TaskManagerDbContext.cs
 ```c#
 namespace Oceyra.Dbml.Generator.Samples;

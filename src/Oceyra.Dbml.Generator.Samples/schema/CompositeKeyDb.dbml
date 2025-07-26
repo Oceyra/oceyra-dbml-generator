@@ -1,0 +1,16 @@
+Table merchants {
+  id bigint [not null]
+  country_code int [not null]
+
+  Indexes {
+    (id, country_code) [pk, unique]
+  }
+}
+
+Table merchant_periods {
+  id bigint [pk, not null]
+  merchant_id bigint [not null]
+  country_code int [not null]
+}
+
+Ref: merchant_periods.(merchant_id, country_code) > merchants.(id, country_code)

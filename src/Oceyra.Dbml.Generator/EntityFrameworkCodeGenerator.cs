@@ -91,13 +91,10 @@ public class EntityFrameworkCodeGenerator
             // Configure relationships
             var relationships = database.Relationships.Where(r => r.LeftTable == table.Name);
 
-            if (relationships.Any())
+            foreach (var rel in relationships)
             {
                 sb.AppendLine();
-                foreach (var rel in relationships)
-                {
-                    GenerateRelationshipConfiguration(sb, rel, entityName!);
-                }
+                GenerateRelationshipConfiguration(sb, rel, entityName!);
             }
 
             sb.AppendLine("        });");
@@ -154,26 +151,24 @@ public class EntityFrameworkCodeGenerator
 
     private static void GenerateRelationshipConfiguration(StringBuilder sb, RelationshipModel relationship, string currentEntity)
     {
-        var relationshipEntity = relationship.RightTable.Dehumanize().Singularize();
-        var leftPropertyName = relationship.LeftColumn?.Length > 2 ? relationship.LeftColumn.RemoveId().Dehumanize() : relationship.RightTable.Dehumanize().Singularize();
-        var rightPropertyName = relationship.RightColumn?.Length > 2 ? relationship.RightColumn.RemoveId().Dehumanize().Pluralize() : relationship.RightTable.Dehumanize();
+        var (leftPropertyName, rightPropertyName) = GetRelationshipPropertyNames(relationship, relationship.LeftTable!);
 
         switch (relationship.RelationshipType)
         {
             case RelationshipType.OneToMany:
-                sb.AppendLine($"            entity.HasMany<{relationshipEntity}>(\"{rightPropertyName}\")");
-                sb.AppendLine($"                .WithOne(\"{rightPropertyName.Singularize()}Navigation\")");
-                sb.AppendLine($"                .HasForeignKey(\"{relationship.RightColumn.Dehumanize()}\");");
+                sb.AppendLine($"            entity.HasMany<{relationship.RightTable.Dehumanize().Singularize()}>(\"{rightPropertyName}\")");
+                sb.AppendLine($"                .WithOne(\"{leftPropertyName}\")");
+                sb.AppendLine($"                .HasForeignKey(\"{string.Join("\", \"", relationship.RightColumns.Dehumanize())}\");");
                 break;
             case RelationshipType.ManyToOne:
-                sb.AppendLine($"            entity.HasOne<{relationshipEntity}>(\"{leftPropertyName}Navigation\")");
-                sb.AppendLine($"                .WithMany(\"{rightPropertyName}\")");
-                sb.AppendLine($"                .HasForeignKey(\"{relationship.LeftColumn.Dehumanize()}\");");
+                sb.AppendLine($"            entity.HasOne<{relationship.RightTable.Dehumanize().Singularize()}>(\"{rightPropertyName}\")");
+                sb.AppendLine($"                .WithMany(\"{leftPropertyName}\")");
+                sb.AppendLine($"                .HasForeignKey(\"{string.Join("\", \"", relationship.LeftColumns.Dehumanize())}\");");
                 break;
             case RelationshipType.OneToOne:
-                sb.AppendLine($"            entity.HasOne<{relationshipEntity}>(\"{leftPropertyName}Navigation\")");
-                sb.AppendLine($"                .WithOne(\"{currentEntity}Navigation\")");
-                sb.AppendLine($"                .HasForeignKey<{currentEntity}>(\"{relationship.LeftColumn.Dehumanize()}\");");
+                sb.AppendLine($"            entity.HasOne<{relationship.RightTable.Dehumanize().Singularize()}>(\"{rightPropertyName}\")");
+                sb.AppendLine($"                .WithOne(\"{leftPropertyName}\")");
+                sb.AppendLine($"                .HasForeignKey<{currentEntity}>(\"{string.Join("\", \"", relationship.LeftColumns.Dehumanize())}\");");
                 break;
         }
     }
@@ -195,16 +190,25 @@ public class EntityFrameworkCodeGenerator
         sb.AppendLine("{");
 
         // Generate constructor for navigation collections
-        var oneToManyRels = relationships.Where(r => r.LeftTable == table.Name && r.RelationshipType == RelationshipType.OneToMany).ToList();
+        var manyRelationships = relationships.Where(r => (r.LeftTable == table.Name && r.RelationshipType == RelationshipType.OneToMany) ||
+                                                         (r.RightTable == table.Name && r.RelationshipType == RelationshipType.ManyToOne)).ToList();
 
-        if (oneToManyRels.Any())
+        if (manyRelationships.Any())
         {
             sb.AppendLine($"    public {className}()");
             sb.AppendLine("    {");
-            foreach (var rel in oneToManyRels)
+            foreach (var relationship in manyRelationships.Where(r => r.RelationshipType == RelationshipType.OneToMany))
             {
-                var propertyName = rel.RightColumn?.Length > 2 ? rel.RightColumn.RemoveId().Dehumanize().Pluralize() : rel.RightTable.Dehumanize();
-                sb.AppendLine($"        {propertyName} = new HashSet<{rel.RightTable.Dehumanize().Singularize()}>();");
+                var (leftPropertyName, _) = GetRelationshipPropertyNames(relationship, relationship.LeftTable!);
+
+                sb.AppendLine($"        {leftPropertyName.Pluralize()} = new HashSet<{relationship.RightTable.Dehumanize().Singularize()}>();");
+            }
+
+            foreach (var relationship in manyRelationships.Where(r => r.RelationshipType == RelationshipType.ManyToOne))
+            {
+                var (rightPropertyName, _) = GetRelationshipPropertyNames(relationship, relationship.RightTable!);
+
+                sb.AppendLine($"        {rightPropertyName.Pluralize()} = new HashSet<{relationship.LeftTable.Dehumanize().Singularize()}>();");
             }
             sb.AppendLine("    }");
             sb.AppendLine();
@@ -268,39 +272,81 @@ public class EntityFrameworkCodeGenerator
     {
         if (isFromSide)
         {
+            var (leftPropertyName, rightPropertyName) = GetRelationshipPropertyNames(relationship, isFromSide ? relationship.LeftTable! : relationship.RightTable!);
             switch (relationship.RelationshipType)
             {
                 case RelationshipType.OneToMany:
-                    var rightPropertyName = relationship.RightColumn?.Length > 2 ? relationship.RightColumn.RemoveId().Dehumanize().Pluralize() : relationship.RightTable.Dehumanize();
-                    sb.AppendLine($"    [InverseProperty(\"{rightPropertyName.Singularize()}Navigation\")]");
-                    sb.AppendLine($"    public virtual ICollection<{relationship.RightTable.Dehumanize().Singularize()}> {rightPropertyName} {{ get; set; }}");
+                    sb.AppendLine($"    [InverseProperty(\"{rightPropertyName}\")]");
+                    sb.AppendLine($"    public virtual ICollection<{relationship.RightTable.Dehumanize().Singularize()}> {leftPropertyName} {{ get; set; }}");
                     break;
                 case RelationshipType.ManyToOne:
                 case RelationshipType.OneToOne:
-                    var leftPropertyName = relationship.LeftColumn?.Length > 2 ? relationship.LeftColumn.RemoveId().Dehumanize() : relationship.RightTable.Dehumanize().Singularize();
-                    sb.AppendLine($"    [ForeignKey(\"{relationship.LeftColumn.Dehumanize()}\")]");
-                    sb.AppendLine($"    public virtual {relationship.RightTable.Dehumanize().Singularize()} {leftPropertyName}Navigation {{ get; set; }}");
+                    sb.AppendLine($"    public virtual {relationship.RightTable.Dehumanize().Singularize()} {leftPropertyName} {{ get; set; }}");
                     break;
             }
         }
         else
         {
+            var (rightPropertyName, leftPropertyName) = GetRelationshipPropertyNames(relationship, isFromSide ? relationship.LeftTable! : relationship.RightTable!);
             switch (relationship.RelationshipType)
             {
                 case RelationshipType.ManyToOne:
-                    var leftPropertyName = relationship.LeftColumn?.Length > 2 ? relationship.LeftColumn.RemoveId().Dehumanize().Pluralize() : relationship.LeftTable.Dehumanize();
-                    sb.AppendLine($"    [InverseProperty(\"{leftPropertyName.Singularize()}Navigation\")]");
-                    sb.AppendLine($"    public virtual ICollection<{relationship.LeftTable.Dehumanize().Singularize()}> {leftPropertyName} {{ get; set; }}");
+                    sb.AppendLine($"    [InverseProperty(\"{leftPropertyName}\")]");
+                    sb.AppendLine($"    public virtual ICollection<{relationship.LeftTable.Dehumanize().Singularize()}> {rightPropertyName} {{ get; set; }}");
                     break;
                 case RelationshipType.OneToOne:
                 case RelationshipType.OneToMany:
-                    var rightPropertyName = relationship.RightColumn?.Length > 2 ? relationship.RightColumn.RemoveId().Dehumanize() : relationship.LeftTable.Dehumanize().Singularize();
-                    sb.AppendLine($"    [ForeignKey(\"{relationship.RightColumn.Dehumanize()}\")]");
-                    sb.AppendLine($"    public virtual {relationship.LeftTable.Dehumanize().Singularize()} {rightPropertyName}Navigation {{ get; set; }}");
+                    sb.AppendLine($"    public virtual {relationship.LeftTable.Dehumanize().Singularize()} {rightPropertyName} {{ get; set; }}");
                     break;
             }
         }
         sb.AppendLine();
+    }
+
+    private static (string, string) GetRelationshipPropertyNames(RelationshipModel relationship, string currentTable)
+    {
+        bool isFromSide = relationship.LeftTable == currentTable;
+        bool isCurrentMany = isFromSide ? relationship.RelationshipType == RelationshipType.ManyToOne : relationship.RelationshipType == RelationshipType.OneToMany;
+        bool isOppositeMany = isFromSide ? relationship.RelationshipType == RelationshipType.OneToMany : relationship.RelationshipType == RelationshipType.ManyToOne;
+
+        currentTable = currentTable.Dehumanize().Singularize();
+        var oppositeTable = (isFromSide ? relationship.RightTable : relationship.LeftTable).Dehumanize().Singularize();
+
+        var currentPropertyName = currentTable;
+        var oppositePropertyName = oppositeTable;
+
+        if (relationship.LeftColumns.Count == 1)
+        {
+            var oppositeColumns = (isFromSide != isCurrentMany ? relationship.RightColumns[0] : relationship.LeftColumns[0]).RemoveId().Dehumanize();
+            var checkTable = isCurrentMany ? oppositeTable : currentTable;
+            var columnName = oppositeColumns.RemoveId().Dehumanize();
+
+            if (!string.IsNullOrWhiteSpace(columnName) && !checkTable.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                currentPropertyName = columnName;
+                oppositePropertyName = columnName;
+            }
+        }
+
+        if (isCurrentMany)
+        {
+            currentPropertyName = currentPropertyName.Pluralize();
+        }
+        else
+        {
+            currentPropertyName = $"{currentPropertyName}Navigation";
+        }
+
+        if (isOppositeMany)
+        {
+            oppositePropertyName = oppositePropertyName.Pluralize();
+        }
+        else
+        {
+            oppositePropertyName = $"{oppositePropertyName}Navigation";
+        }
+
+        return (oppositePropertyName, currentPropertyName);
     }
 
     private string MapDbmlTypeToCSharp(string dbmlType, bool canBeNull)
@@ -368,5 +414,13 @@ public static class OceyraStringExtensions
         }
 
         return value;
+    }
+}
+
+public static class OceyraEnumerableExtensions
+{
+    public static IEnumerable<string> Dehumanize(this IEnumerable<string> values)
+    {
+        return values.Select(v => v.Dehumanize());
     }
 }

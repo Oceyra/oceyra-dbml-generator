@@ -1,5 +1,5 @@
 Table "projects" {
-  "project_id" varchar(500) [pk, not null] [ref: < "task_results"."project_id"]
+  "project_id" varchar(500) [pk, not null]
   "project_name" varchar(500) [not null]
   "requirements" varchar(500)
   "task_plan" varchar(500)
@@ -9,8 +9,8 @@ Table "projects" {
 }
 
 Table "task_results" {
-  "project_id" varchar(500) [not null]
-  "task_id" varchar(500) [pk, not null] [ref: < "task_dependencies"."dependency_task_id"]
+  "project_id" varchar(500) [not null] [ref: > "projects"."project_id"]
+  "task_id" varchar(500) [pk, not null]
   "name" varchar(500) [not null]
   "description" varchar(500)
   "agent_type" varchar(500) [not null]
@@ -29,7 +29,7 @@ Table "task_results" {
 Table "task_dependencies" {
   "project_id" varchar(500) [not null]
   "task_id" varchar(500) [not null]
-  "dependency_task_id" varchar(500) [not null]
+  "dependency_task_id" varchar(500) [not null] [ref: > "task_results"."task_id"]
   "created_at" timestamp
   "updated_at" timestamp
 
