@@ -1,7 +1,7 @@
 # Oceyra DBML Source Generator
 This generator allow to build the DbContext for entity framework core, based on a DBML from DbDiagram or ChartDb
 
-[![Build status](https://gitea.duchaine.freeddns.org/ManufacturingTyde/oceyra-dbml-generator/actions/workflows/publish.yaml/badge.svg?branch=main&event=push)](https://gitea.duchaine.freeddns.org/ManufacturingTyde/oceyra-dbml-generator/actions/workflows/publish.yaml?query=branch%3Amain+event%3Apush)
+[![Build status](https://github.com/oceyra/oceyra-dbml-generator/actions/workflows/publish.yaml/badge.svg?branch=main&event=push)](github.com/oceyra/oceyra-dbml-generator/actions/workflows/publish.yaml?query=branch%3Amain+event%3Apush)
 
 ## Usage Sample
 In schema/TaskManagerDb.dbml
@@ -62,3 +62,7 @@ namespace Oceyra.Dbml.Generator.Samples;
 [DbmlSource("schema/TaskManagerDb.dbml")]
 public partial class TaskManagerDbContext : DbContext { }
 ```
+
+## Sponsors
+
+<a href="https://www.buymeacoffee.com/pierduchp" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
