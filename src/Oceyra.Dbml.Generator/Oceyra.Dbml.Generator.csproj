@@ -56,8 +56,8 @@
       <TargetPathWithTargetPlatformMoniker Include="$(PKGHumanizer_Core)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PKGOceyra_Dbml_Parser)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
 
-      <None Include="$(PKGHumanizer_Core)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="dependencies" Visible="false" />
-      <None Include="$(PKGOceyra_Dbml_Parser)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="dependencies" Visible="false" />
+      <None Include="$(PKGHumanizer_Core)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="$(PKGOceyra_Dbml_Parser)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
   </Target>
 
