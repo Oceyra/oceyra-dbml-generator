@@ -34,12 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Humanizer.Core" Version="2.14.1" GeneratePathProperty="true" />
+    <PackageReference Include="Humanizer.Core" Version="2.14.1" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
-    <PackageReference Include="Oceyra.Dbml.Parser" Version="0.7.6">
-      <GeneratePathProperty>True</GeneratePathProperty>
-    </PackageReference>
+    <PackageReference Include="Oceyra.Dbml.Parser" Version="0.7.6" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -54,6 +52,9 @@
     <ItemGroup>
       <TargetPathWithTargetPlatformMoniker Include="$(PKGHumanizer_Core)\lib\netstandard2.0\Humanizer.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PKGOceyra_Dbml_Parser)\lib\netstandard2.0\Oceyra.Dbml.Parser.dll" IncludeRuntimeDependency="false" />
+
+      <None Include="$(PKGHumanizer_Core)\lib\netstandard2.0\Humanizer.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="$(PKGOceyra_Dbml_Parser)\lib\netstandard2.0\Oceyra.Dbml.Parser.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
   </Target>
 
