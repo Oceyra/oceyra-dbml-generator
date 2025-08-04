@@ -156,18 +156,18 @@ public class EntityFrameworkCodeGenerator
         switch (relationship.RelationshipType)
         {
             case RelationshipType.OneToMany:
-                sb.AppendLine($"            entity.HasMany<{relationship.RightTable.Dehumanize().Singularize()}>(\"{rightPropertyName}\")");
-                sb.AppendLine($"                .WithOne(\"{leftPropertyName}\")");
+                sb.AppendLine($"            entity.HasMany<{relationship.RightTable.Dehumanize().Singularize()}>(\"{leftPropertyName}\")");
+                sb.AppendLine($"                .WithOne(\"{rightPropertyName}\")");
                 sb.AppendLine($"                .HasForeignKey(\"{string.Join("\", \"", relationship.RightColumns.Dehumanize())}\");");
                 break;
             case RelationshipType.ManyToOne:
-                sb.AppendLine($"            entity.HasOne<{relationship.RightTable.Dehumanize().Singularize()}>(\"{rightPropertyName}\")");
-                sb.AppendLine($"                .WithMany(\"{leftPropertyName}\")");
+                sb.AppendLine($"            entity.HasOne<{relationship.RightTable.Dehumanize().Singularize()}>(\"{leftPropertyName}\")");
+                sb.AppendLine($"                .WithMany(\"{rightPropertyName}\")");
                 sb.AppendLine($"                .HasForeignKey(\"{string.Join("\", \"", relationship.LeftColumns.Dehumanize())}\");");
                 break;
             case RelationshipType.OneToOne:
-                sb.AppendLine($"            entity.HasOne<{relationship.RightTable.Dehumanize().Singularize()}>(\"{rightPropertyName}\")");
-                sb.AppendLine($"                .WithOne(\"{leftPropertyName}\")");
+                sb.AppendLine($"            entity.HasOne<{relationship.RightTable.Dehumanize().Singularize()}>(\"{leftPropertyName}\")");
+                sb.AppendLine($"                .WithOne(\"{rightPropertyName}\")");
                 sb.AppendLine($"                .HasForeignKey<{currentEntity}>(\"{string.Join("\", \"", relationship.LeftColumns.Dehumanize())}\");");
                 break;
         }
