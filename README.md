@@ -65,4 +65,4 @@ public partial class TaskManagerDbContext : DbContext { }
 
 ## Sponsors
 
-<a href="https://www.buymeacoffee.com/pierduchp" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<p><a href="https://www.buymeacoffee.com/pierduchp" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a></p>
