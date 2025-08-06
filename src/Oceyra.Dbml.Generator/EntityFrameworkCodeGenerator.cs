@@ -321,7 +321,7 @@ public class EntityFrameworkCodeGenerator
             var checkTable = isCurrentMany ? oppositeTable : currentTable;
             var columnName = oppositeColumns.RemoveId().Dehumanize();
 
-            if (!string.IsNullOrWhiteSpace(columnName) && !checkTable.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(columnName) && !checkTable.Equals(columnName, StringComparison.OrdinalIgnoreCase) && !columnName.Equals("id", StringComparison.OrdinalIgnoreCase))
             {
                 currentPropertyName = columnName;
                 oppositePropertyName = columnName;

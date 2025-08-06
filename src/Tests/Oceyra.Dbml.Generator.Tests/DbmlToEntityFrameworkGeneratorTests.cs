@@ -300,4 +300,106 @@ public partial class CustomDbContext : DbContext { }
         result.ShouldHaveGeneratorTimeWithin<DbmlToEntityFrameworkGenerator>(TimeSpan.FromMilliseconds(1000));
         result.ShouldGenerateFiles(1);
     }
+
+    [Fact]
+    public void ConstructorGenerator_UsingIdAsForeignKey_GeneratesNameBasedOnTablename()
+    {
+        var dbml = @"
+            Table ""datasource_providers"" {
+              ""id"" integer [pk, not null, ref: < ""datasources"".""datasource_provider_id""]
+              ""name"" varchar(500)
+              ""description"" varchar(500)
+              ""nuget_package_id"" integer
+              ""use_method"" varchar(500) [not null]
+              ""created_at"" timestamp [not null]
+              ""created_by"" varchar(500) [not null]
+              ""updated_at"" timestamp [not null]
+              ""updated_by"" varchar(500) [not null]
+
+              Indexes {
+                name [name: ""idx_name""]
+              }
+            }
+
+            Table ""datasources"" {
+              ""id"" integer [pk, not null]
+              ""name"" integer [unique, not null]
+              ""description"" varchar(500)
+              ""enabled"" bool
+              ""datasource_provider_id"" integer [not null]
+              ""connection"" varchar(500)
+              ""username"" varchar(500)
+              ""password"" varchar(500)
+              ""created_at"" timestamp [not null]
+              ""created_by"" varchar(500) [not null]
+              ""updated_at"" timestamp [not null]
+              ""updated_by"" varchar(500) [not null]
+
+              Indexes {
+                name [unique, name: ""idx_name""]
+              }
+            }
+
+            Table ""nuget_packages"" {
+              ""id"" integer [pk, not null, ref: < ""datasource_providers"".""nuget_package_id""]
+              ""package_id"" varchar(500) [unique, not null]
+              ""package_version"" varchar(500) [not null]
+              ""created_at"" timestamp [not null]
+              ""created_by"" varchar(500) [not null]
+              ""updated_at"" timestamp [not null]
+              ""updated_by"" varchar(500) [not null]
+            }
+
+            Table ""roles"" {
+              ""id"" integer [pk, not null, ref: < ""user_roles"".""role_id""]
+              ""name"" varchar(500)
+              ""created_at"" timestamp [not null]
+              ""created_by"" varchar(500) [not null]
+              ""updated_at"" timestamp [not null]
+              ""updated_by"" varchar(500) [not null]
+            }
+
+            Table ""users"" {
+              ""id"" integer [pk, not null, ref: < ""user_roles"".""user_id""]
+              ""username"" varchar(500) [unique, not null]
+              ""password"" varchar(500)
+              ""firstname"" varchar(500)
+              ""lastname"" varchar(500)
+              ""created_at"" timestamp [not null]
+              ""created_by"" varchar(500) [not null]
+              ""updated_at"" timestamp [not null]
+              ""updated_by"" varchar(500) [not null]
+              ""enabled"" bool [not null]
+            }
+
+            Table ""user_roles"" {
+              ""id"" integer [pk, not null]
+              ""user_id"" integer [not null]
+              ""role_id"" integer [not null]
+            }";
+
+        var source = @"
+using Microsoft.EntityFrameworkCore;
+using Oceyra.Generator;
+
+namespace Oceyra.Dbml.Tests;
+
+[DbmlSource(""schema/customdb.dbml"")]
+public partial class CustomDbContext : DbContext { }";
+
+        var result = SourceGeneratorVerifier.CompileAndTest<DbmlToEntityFrameworkGenerator>(
+           syntaxTrees: [CSharpSyntaxTree.ParseText(source, path: "CustomDbContext.cs")],
+           additionalTexts: [new InMemoryAdditionalText("some/other/path/schema/customdb.dbml", dbml)]
+        );
+
+        result.ShouldHaveNoErrors();
+        result.ShouldExecuteWithin(TimeSpan.FromMilliseconds(2000));
+        result.ShouldHaveGeneratorTimeWithin<DbmlToEntityFrameworkGenerator>(TimeSpan.FromMilliseconds(1000));
+        result.ShouldGenerateFiles(1);
+
+        var compiledUserTableType = result.GetCompiledType("Oceyra.Dbml.Tests.User")
+            .ShouldNotBeNull();
+
+        compiledUserTableType.GetProperties().ShouldContain(p => p.Name.Equals("UserRoles", StringComparison.OrdinalIgnoreCase));
+    }
 }
