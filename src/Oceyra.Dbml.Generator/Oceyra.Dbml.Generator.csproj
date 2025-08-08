@@ -8,8 +8,6 @@
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
     <PackageId>Oceyra.Dbml.Generator</PackageId>
     <Authors>Pier-Luc Duchaine</Authors>
     <Company>Oceyra</Company>
